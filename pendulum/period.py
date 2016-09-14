@@ -184,8 +184,13 @@ class Period(WordableIntervalMixin, BaseInterval):
         return excluded_periods
 
     def merge(self, *periods):
+        return self.merge_periods(
+            self, *periods
+        )
+
+    @classmethod
+    def merge_periods(cls, *periods):
         periods = list(periods)
-        periods.append(self)
         periods.sort()
 
         period = periods[0]
