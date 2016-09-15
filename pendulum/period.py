@@ -136,51 +136,95 @@ class Period(WordableIntervalMixin, BaseInterval):
         """
         return Interval(seconds=self.total_seconds())
 
-    def exclude_from(self, *periods):
-        """Exclude a period from the list of periods and return the list."""
+    def exclude(self, *periods):
+        """Exclude a list of periods from this period.
 
-        excluded_periods = []
+        Args:
+            *periods (tuple): Tuple of periods that need to be excluded from this period.
+
+        Returns:
+            list: List of periods resulting from the exclusion.
+        """
+        if not periods:
+            return [self]
+
+        period = periods[0]
+        remaining_periods = periods[1:]
+
+        excluded_periods = self._exclude(other=period)
+        if len(remaining_periods == 0):
+            return excluded_periods
+
+        result = []
+        for excluded_period in excluded_periods:
+            result.extend(
+                excluded_period.exclude(
+                    *remaining_periods
+                ) or []
+            )
+        return result
+
+    def exclude_from(self, *periods):
+        """Exclude this period from a list of periods.
+
+        Args:
+            *periods (tuple): Tuple of periods that this period needs to be excluded from.
+
+        Returns:
+            list: List of periods resulting from the exclusion.
+        """
+
+        all_excluded_periods = []
         periods = list(periods)
 
         for period in periods:
-            excluded_period = self._exclude(other=period)
-            if excluded_period is not None:
-                excluded_periods += excluded_period
+            excluded_periods = period._exclude(other=self)
+            if excluded_periods is not None:
+                all_excluded_periods += excluded_periods
 
-        return excluded_periods
+        return all_excluded_periods
 
     def _exclude(self, other):
+        """Exclude this period from another period.
+
+        Args:
+            self (Period): Period from which need to be excluded.
+
+        Returns:
+            list: List of periods resulting from the exclusion.
+        """
         excluded_periods = []
-        if self.end > other.start:
-            if self.start <= other.start:
-                if self.end < other.end:
-                    other = Period(
-                        start=self.end,
-                        end=other.end
+        this = self
+        if other.end > self.start:
+            if other.start <= self.start:
+                if other.end < self.end:
+                    this = Period(
+                        start=other.end,
+                        end=self.end
                     )
                 else:
                     # Do not add it (remove it)
                     return None
-            elif self.start < other.end:
-                if self.end < other.end:
-                    # Insert a period before new one, the self splits
+            elif other.start < self.end:
+                if other.end < self.end:
+                    # Insert a period before new one, the other splits
                     # a period in two periods.
                     excluded_periods.append(
                         Period(
-                            start=self.end,
-                            end=other.end
+                            start=self.start,
+                            end=other.start
                         )
                     )
-                    other = Period(
-                        start=other.start,
-                        end=self.start
+                    this = Period(
+                        start=other.end,
+                        end=self.end
                     )
                 else:
-                    other = Period(
-                        start=other.start,
-                        end=self.start
+                    this = Period(
+                        start=self.start,
+                        end=other.start
                     )
-        excluded_periods.append(other)
+        excluded_periods.append(this)
         return excluded_periods
 
     def merge(self, *periods):

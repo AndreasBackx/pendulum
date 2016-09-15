@@ -9,6 +9,25 @@ from .. import (AbstractTestCase, eleventh, fifth, first, fourteenth, fourth,
 
 class ExcludeTestcase(AbstractTestCase):
 
+    def assertExcluded(self, from_periods, exclusion, expected=None):
+        """Assert that Period.exclude_from was successful.
+
+        Args:
+            from_periods (list): List of periods that needs to be excluded from.
+            exclusion (Period): Period that needs to be excluded.
+            expected (:obj:`list`, optional): Expected result, if None then will use from_periods.
+        """
+        if expected is None:
+            expected = from_periods
+
+        excluded = exclusion.exclude_from(
+            *from_periods
+        )
+        self.assertEqual(
+            expected,
+            excluded
+        )
+
     def test_exclude_from(self):
         first_period = Period(
             start=third,
@@ -19,56 +38,33 @@ class ExcludeTestcase(AbstractTestCase):
             end=twelfth
         )
 
-        def assertExcluded(start, end, expected=None):
-            if expected is None:
-                expected = [
-                    first_period,
-                    second_period
-                ]
-
-            excluded = Period(
-                start=start,
-                end=end
-            ).exclude_from(
-                first_period,
-                second_period
-            )
-            self.assertEqual(
-                expected,
-                excluded
-            )
-
         starts = [
             first,
             first_period.start
         ]
 
+        assert_tests = []
+
         for start in starts:
 
             if start == first:
                 # Before/start first period - before first period
-                assertExcluded(
-                    expected=[
-                        first_period,
-                        second_period
-                    ],
-                    start=start,
-                    end=second
-                )
+                assert_tests.append({
+                    'start': start,
+                    'end': second
+                })
 
                 # Before/start first period - start first period
-                assertExcluded(
-                    expected=[
-                        first_period,
-                        second_period
-                    ],
-                    start=start,
-                    end=first_period.start
-                )
+                assert_tests.append({
+                    'start': start,
+                    'end': first_period.start
+                })
 
             # Before/start first period - in first period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': start,
+                'end': fourth,
+                'expected': [
                     # 4 - 6
                     Period(
                         start=fourth,
@@ -76,67 +72,67 @@ class ExcludeTestcase(AbstractTestCase):
                     ),
                     # 9 - 12
                     second_period
-                ],
-                start=start,
-                end=fourth
-            )
+                ]
+            })
 
             # Before/start first period - end first period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': start,
+                'end': first_period.end,
+                'expected': [
                     second_period
-                ],
-                start=start,
-                end=first_period.end
-            )
+                ]
+            })
 
             # Before/start first period - after first period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': start,
+                'end': seventh,
+                'expected': [
                     second_period
-                ],
-                start=start,
-                end=seventh
-            )
+                ]
+            })
 
             # Before/start first period - start second period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': start,
+                'end': second_period.start,
+                'expected': [
                     second_period
-                ],
-                start=start,
-                end=second_period.start
-            )
+                ]
+            })
 
             # Before/start first period - in second period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': start,
+                'end': tenth,
+                'expected': [
                     Period(
                         start=tenth,
                         end=second_period.end
                     )
-                ],
-                start=start,
-                end=tenth
-            )
+                ]
+            })
 
             # Before/start first period - end second period
-            assertExcluded(
-                expected=[],
-                start=start,
-                end=second_period.end
-            )
+            assert_tests.append({
+                'start': start,
+                'end': second_period.end,
+                'expected': []
+            })
 
             # Before/start first period - after second period
-            assertExcluded(
-                expected=[],
-                start=start,
-                end=thirteenth
-            )
+            assert_tests.append({
+                'start': start,
+                'end': thirteenth,
+                'expected': []
+            })
 
         # In first period - in first period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': fourth,
+            'end': fifth,
+            'expected': [
                 # 3 - 4
                 Period(
                     start=first_period.start,
@@ -149,53 +145,53 @@ class ExcludeTestcase(AbstractTestCase):
                 ),
                 # 9 - 12
                 second_period
-            ],
-            start=fourth,
-            end=fifth
-        )
+            ]
+        })
 
         # In first period - end first period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': fourth,
+            'end': first_period.end,
+            'expected': [
                 Period(
                     start=first_period.start,
                     end=fourth
                 ),
                 second_period
-            ],
-            start=fourth,
-            end=first_period.end
-        )
+            ]
+        })
 
         # In first period - after first period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': fourth,
+            'end': seventh,
+            'expected': [
                 Period(
                     start=first_period.start,
                     end=fourth
                 ),
                 second_period
-            ],
-            start=fourth,
-            end=seventh
-        )
+            ]
+        })
 
         # In first period - start second period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': fourth,
+            'end': second_period.start,
+            'expected': [
                 Period(
                     start=first_period.start,
                     end=fourth
                 ),
                 second_period
-            ],
-            start=fourth,
-            end=second_period.start
-        )
+            ]
+        })
 
         # In first period - in second period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': fourth,
+            'end': tenth,
+            'expected': [
                 Period(
                     start=first_period.start,
                     end=fourth
@@ -204,64 +200,50 @@ class ExcludeTestcase(AbstractTestCase):
                     start=tenth,
                     end=second_period.end
                 )
-            ],
-            start=fourth,
-            end=tenth
-        )
+            ]
+        })
 
         # In first period - end second period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': fourth,
+            'end': second_period.end,
+            'expected': [
                 Period(
                     start=first_period.start,
                     end=fourth
                 )
-            ],
-            start=fourth,
-            end=second_period.end
-        )
+            ]
+        })
 
         # In first period - after second period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': fourth,
+            'end': thirteenth,
+            'expected': [
                 Period(
                     start=first_period.start,
                     end=fourth
                 )
-            ],
-            start=fourth,
-            end=thirteenth
-        )
+            ]
+        })
 
         # End first period - after first period
-        assertExcluded(
-            expected=[
-                first_period,
-                second_period
-            ],
-            start=first_period.end,
-            end=seventh
-        )
+        assert_tests.append({
+            'start': first_period.end,
+            'end': seventh,
+        })
 
         # End first period - start second period
-        assertExcluded(
-            expected=[
-                first_period,
-                second_period
-            ],
-            start=first_period.end,
-            end=second_period.start
-        )
+        assert_tests.append({
+            'start': first_period.end,
+            'end': second_period.start,
+        })
 
         # After first period - start second period
-        assertExcluded(
-            expected=[
-                first_period,
-                second_period
-            ],
-            start=seventh,
-            end=second_period.start
-        )
+        assert_tests.append({
+            'start': seventh,
+            'end': second_period.start,
+        })
 
         mids = [
             first_period.end, seventh,
@@ -270,39 +252,41 @@ class ExcludeTestcase(AbstractTestCase):
 
         for mid in mids:
             # End/after first periods or start second period - in second period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': mid,
+                'end': tenth,
+                'expected': [
                     first_period,
                     Period(
                         start=tenth,
                         end=second_period.end
                     )
-                ],
-                start=mid,
-                end=tenth
-            )
+                ]
+            })
 
             # End/after first periods or start second period - end second period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': mid,
+                'end': second_period.end,
+                'expected': [
                     first_period
-                ],
-                start=mid,
-                end=second_period.end
-            )
+                ]
+            })
 
             # End/after first periods or start second period - after second period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': mid,
+                'end': thirteenth,
+                'expected': [
                     first_period
-                ],
-                start=mid,
-                end=thirteenth
-            )
+                ]
+            })
 
         # In second period - in second period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': tenth,
+            'end': eleventh,
+            'expected': [
                 first_period,
                 Period(
                     start=second_period.start,
@@ -312,36 +296,34 @@ class ExcludeTestcase(AbstractTestCase):
                     start=eleventh,
                     end=second_period.end
                 )
-            ],
-            start=tenth,
-            end=eleventh
-        )
+            ]
+        })
 
         # In second period - end second period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': tenth,
+            'end': second_period.end,
+            'expected': [
                 first_period,
                 Period(
                     start=second_period.start,
                     end=tenth
                 )
-            ],
-            start=tenth,
-            end=second_period.end
-        )
+            ]
+        })
 
         # In second period - after second period
-        assertExcluded(
-            expected=[
+        assert_tests.append({
+            'start': tenth,
+            'end': thirteenth,
+            'expected': [
                 first_period,
                 Period(
                     start=second_period.start,
                     end=tenth
                 )
-            ],
-            start=tenth,
-            end=thirteenth
-        )
+            ]
+        })
 
         ends = [
             second_period.end,
@@ -350,11 +332,20 @@ class ExcludeTestcase(AbstractTestCase):
 
         for end in ends:
             # End second period - after second period
-            assertExcluded(
-                expected=[
+            assert_tests.append({
+                'start': end,
+                'end': fourteenth,
+            })
+
+        for assert_test in assert_tests:
+            self.assertExcluded(
+                from_periods=[
                     first_period,
                     second_period
                 ],
-                start=end,
-                end=fourteenth
+                exclusion=Period(
+                    start=assert_test['start'],
+                    end=assert_test['end']
+                ),
+                expected=assert_test.get('expected')
             )
