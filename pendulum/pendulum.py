@@ -1092,22 +1092,40 @@ class Pendulum(datetime.datetime, TranslatableMixin):
 
     # Comparisons
     def __eq__(self, other):
-        return self._datetime == self._get_datetime(other)
+        try:
+            return self._datetime == self._get_datetime(other)
+        except ValueError:
+            return False
 
     def __ne__(self, other):
-        return self._datetime != self._get_datetime(other)
+        try:
+            return self._datetime != self._get_datetime(other)
+        except ValueError:
+            return False
 
     def __gt__(self, other):
-        return self._datetime > self._get_datetime(other)
+        try:
+            return self._datetime > self._get_datetime(other)
+        except ValueError:
+            return False
 
     def __ge__(self, other):
-        return self._datetime >= self._get_datetime(other)
+        try:
+            return self._datetime >= self._get_datetime(other)
+        except ValueError:
+            return False
 
     def __lt__(self, other):
-        return self._datetime < self._get_datetime(other)
+        try:
+            return self._datetime < self._get_datetime(other)
+        except ValueError:
+            return False
 
     def __le__(self, other):
-        return self._datetime <= self._get_datetime(other)
+        try:
+           return self._datetime <= self._get_datetime(other)
+        except ValueError:
+            return False
 
     def between(self, dt1, dt2, equal=True):
         """
