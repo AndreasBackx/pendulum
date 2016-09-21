@@ -9,6 +9,12 @@ from .. import (AbstractTestCase, eighth, fifth, first, fourteenth, fourth,
 
 class MergeTestcase(AbstractTestCase):
 
+    def test_empty(self):
+        self.assertEqual(
+            Period.merge_periods(),
+            []
+        )
+
     def test_merge(self):
         first_period = Period(
             start=third,

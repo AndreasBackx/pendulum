@@ -234,7 +234,11 @@ class Period(WordableIntervalMixin, BaseInterval):
 
     @classmethod
     def merge_periods(cls, *periods):
+        if len(periods) == 0:
+            return []
+
         periods = list(periods)
+
         periods.sort()
 
         period = periods[0]
