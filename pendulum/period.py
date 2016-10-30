@@ -152,7 +152,7 @@ class Period(WordableIntervalMixin, BaseInterval):
         remaining_periods = periods[1:]
 
         excluded_periods = self._exclude(other=period)
-        if len(remaining_periods == 0):
+        if not remaining_periods:
             return excluded_periods
 
         result = []
