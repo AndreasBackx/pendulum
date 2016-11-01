@@ -1,11 +1,61 @@
 # Change Log
 
-## [Unreleased]
+
+## [0.6.5] - 2016-10-31
+
+### Changed
+
+- Adds validation to `set_week_starts_at()`, `set_week_ends_at()` and `set_weekend_days()`. (thanks to [kleschenko](https://github.com/kleschenko))
+- Updates ukrainian localization. (thanks to [kleschenko](https://github.com/kleschenko))
+
+### Fixed
+
+- Fixes loading of timezones without transitions.
+- Fixes `Timezone.utcoffset()`. (thanks to [regnarock](https://github.com/regnarock))
+
+
+## [0.6.4] - 2016-10-22
+
+### Changed
+
+- Adds support for `pytz` timezones in constructor.
+
+### Fixed
+
+- Fixes behavior of `add()`/`subtract()` methods for years, months and days when a DST transition occurs.
+- Fixes `range()` behavior.
+
+
+## [0.6.3] - 2016-10-19
+
+### Changed
+
+- Makes `replace()` accept the same tzinfo types as the constructor.
+
+### Fixed
+
+- Fixes `timezone_()` not setting the tzinfo properly.
+- Fixes pickling/unpickling of Pendulum instances with fixed timezone.
+
+
+## [0.6.2] - 2016-09-26
+
+### Fixed
+
+- Fixes timezones loading on Windows
+
+
+## [0.6.1] - 2016-09-19
+
+### Changed
+
+- `Pendulum` instances can no longer be compared to strings and integers.
 
 ### Fixed
 
 - Fixes `Timezone._convert()` method for fixed timezones.
 - Fixes `instances()` for some `tzinfo`.
+- Fixes comparisons to incompatible objects raising an error.
 
 
 ## [0.6.0] - 2016-09-12
@@ -178,7 +228,11 @@ This version causes major breaking API changes to simplify it and making it more
 Initial release
 
 
-[Unreleased]: https://github.com/sdispater/pendulum/compare/0.6.0...master
+[0.6.5]: https://github.com/sdispater/pendulum/releases/tag/0.6.5
+[0.6.4]: https://github.com/sdispater/pendulum/releases/tag/0.6.4
+[0.6.3]: https://github.com/sdispater/pendulum/releases/tag/0.6.3
+[0.6.2]: https://github.com/sdispater/pendulum/releases/tag/0.6.2
+[0.6.1]: https://github.com/sdispater/pendulum/releases/tag/0.6.1
 [0.6.0]: https://github.com/sdispater/pendulum/releases/tag/0.6.0
 [0.5.5]: https://github.com/sdispater/pendulum/releases/tag/0.5.5
 [0.5.4]: https://github.com/sdispater/pendulum/releases/tag/0.5.4

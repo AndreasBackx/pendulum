@@ -17,7 +17,6 @@ from .mixins.default import TranslatableMixin
 from .tz import Timezone, UTC, FixedTimezone, local_timezone
 from .tz.timezone_info import TimezoneInfo
 from .formatting import FORMATTERS
-from ._compat import basestring
 from .constants import (
     SUNDAY, MONDAY, TUESDAY, WEDNESDAY,
     THURSDAY, FRIDAY, SATURDAY,
@@ -103,6 +102,15 @@ class Pendulum(datetime.datetime, TranslatableMixin):
             timezone_offset = obj * 60 * 60
 
             return FixedTimezone(timezone_offset)
+        elif isinstance(obj, datetime.tzinfo) and not isinstance(obj, Timezone):
+            # pytz
+            if hasattr(obj, 'localize'):
+                obj = obj.zone
+            else:
+                # We have no sure way to figure out
+                # the timezone name, we raise an error
+
+                raise ValueError('Unsupported timezone {}'.format(obj))
 
         tz = cls._timezone(obj)
 
@@ -213,8 +221,6 @@ class Pendulum(datetime.datetime, TranslatableMixin):
                 # We have no sure way to figure out
                 # the timezone name, we fallback
                 # on a fixed offset
-                offset = dt.utcoffset()
-
                 tz = dt.utcoffset().total_seconds() / 3600
 
         return cls(
@@ -339,7 +345,7 @@ class Pendulum(datetime.datetime, TranslatableMixin):
                hour=0, minute=0, second=0, microsecond=0,
                tz=UTC):
         """
-        Create a new Carbon instance from a specific date and time.
+        Create a new Pendulum instance from a specific date and time.
 
         If any of year, month or day are set to None their now() values will
         be used.
@@ -500,12 +506,11 @@ class Pendulum(datetime.datetime, TranslatableMixin):
         return self._tz.convert(self.replace(**kwargs))
 
     def timezone_(self, tz):
-        tz = self._safe_create_datetime_zone(tz)
-
-        dt = self.copy()
-        dt._tz = tz
-
-        return dt
+        return self.__class__(
+            self.year, self.month, self.day,
+            self.hour, self.minute, self.second, self.microsecond,
+            tz
+        )
 
     def tz_(self, tz):
         return self.timezone_(tz)
@@ -764,6 +769,8 @@ class Pendulum(datetime.datetime, TranslatableMixin):
 
         :type value: int
         """
+        if value not in cls._days:
+            raise ValueError('Invalid day of the week: {}'.format(value))
         cls._week_starts_at = value
 
     @classmethod
@@ -782,6 +789,8 @@ class Pendulum(datetime.datetime, TranslatableMixin):
 
         :type value: int
         """
+        if value not in cls._days:
+            raise ValueError('Invalid day of the week: {}'.format(value))
         cls._week_ends_at = value
 
     @classmethod
@@ -794,13 +803,17 @@ class Pendulum(datetime.datetime, TranslatableMixin):
         return cls._weekend_days
 
     @classmethod
-    def set_weekend_days(cls, value):
+    def set_weekend_days(cls, values):
         """
         Set weekend days.
 
         :type value: list
         """
-        cls._weekend_days = value
+        for value in values:
+            if value not in cls._days:
+                raise ValueError('Invalid day of the week: {}'
+                                 .format(value))
+        cls._weekend_days = values
 
     # Normalization Rule
     @classmethod
@@ -855,7 +868,7 @@ class Pendulum(datetime.datetime, TranslatableMixin):
     @classmethod
     def get_test_now(cls):
         """
-        Get the Carbon instance (real or mock) to be returned when a "now"
+        Get the Pendulum instance (real or mock) to be returned when a "now"
         instance is created.
 
         :rtype: Pendulum or None
@@ -1095,37 +1108,37 @@ class Pendulum(datetime.datetime, TranslatableMixin):
         try:
             return self._datetime == self._get_datetime(other)
         except ValueError:
-            return False
+            return NotImplemented
 
     def __ne__(self, other):
         try:
             return self._datetime != self._get_datetime(other)
         except ValueError:
-            return False
+            return NotImplemented
 
     def __gt__(self, other):
         try:
             return self._datetime > self._get_datetime(other)
         except ValueError:
-            return False
+            return NotImplemented
 
     def __ge__(self, other):
         try:
             return self._datetime >= self._get_datetime(other)
         except ValueError:
-            return False
+            return NotImplemented
 
     def __lt__(self, other):
         try:
             return self._datetime < self._get_datetime(other)
         except ValueError:
-            return False
+            return NotImplemented
 
     def __le__(self, other):
         try:
             return self._datetime <= self._get_datetime(other)
         except ValueError:
-            return False
+            return NotImplemented
 
     def between(self, dt1, dt2, equal=True):
         """
@@ -1431,7 +1444,14 @@ class Pendulum(datetime.datetime, TranslatableMixin):
         )
 
         dt = self._datetime + delta
-        dt = self._tz.convert(dt)
+
+        if any([years, months, weeks, days]):
+            # If we specified any of years, months, weeks or days
+            # we will not apply the transition (if any)
+            dt = self._tz.convert(dt.replace(tzinfo=None))
+        else:
+            # Else, we need to apply the transition properly (if any)
+            dt = self._tz.convert(dt)
 
         return self.instance(dt)
 
@@ -1466,16 +1486,11 @@ class Pendulum(datetime.datetime, TranslatableMixin):
 
         :rtype: Pendulum
         """
-        delta = relativedelta(
-            years=years, months=months, weeks=weeks, days=days,
-            hours=hours, minutes=minutes, seconds=seconds,
-            microseconds=microseconds
+        return self.add(
+            years=-years, months=-months, weeks=-weeks, days=-days,
+            hours=-hours, minutes=-minutes, seconds=-seconds,
+            microseconds=-microseconds
         )
-
-        dt = self._datetime - delta
-        dt = self._tz.convert(dt)
-
-        return self.instance(dt)
 
     def add_timedelta(self, delta):
         """
@@ -2128,20 +2143,6 @@ class Pendulum(datetime.datetime, TranslatableMixin):
 
             return value if not pendulum else Pendulum.instance(value)
 
-        if isinstance(value, (int, float)):
-            d = Pendulum.create_from_timestamp(value, self.timezone)
-            if pendulum:
-                return d
-
-            return d._datetime
-
-        if isinstance(value, basestring):
-            d = Pendulum.parse(value, tz=self.timezone)
-            if pendulum:
-                return d
-
-            return d._datetime
-
         raise ValueError('Invalid datetime "{}"'.format(value))
 
     def for_json(self):
@@ -2156,10 +2157,16 @@ class Pendulum(datetime.datetime, TranslatableMixin):
         if isinstance(other, datetime.timedelta):
             return self.subtract_timedelta(other)
 
-        return self._get_datetime(other, True).diff(self, False)
+        try:
+            return self._get_datetime(other, True).diff(self, False)
+        except ValueError:
+            return NotImplemented
 
     def __rsub__(self, other):
-        return self.diff(self._get_datetime(other, True), False)
+        try:
+            return self.diff(self._get_datetime(other, True), False)
+        except ValueError:
+            return NotImplemented
 
     def __add__(self, other):
         if not isinstance(other, datetime.timedelta):
@@ -2203,7 +2210,14 @@ class Pendulum(datetime.datetime, TranslatableMixin):
         minute = minute if minute is not None else self._minute
         second = second if second is not None else self._second
         microsecond = microsecond if microsecond is not None else self._microsecond
-        tzinfo = tzinfo if tzinfo is not True else self._tzinfo
+
+        # Checking tzinfo
+        if tzinfo is not None and tzinfo is not True:
+            tzinfo = self._safe_create_datetime_zone(tzinfo)
+        elif tzinfo is None:
+            tzinfo = tzinfo
+        else:
+            tzinfo = self._tzinfo
 
         return self.instance(
             self._datetime.replace(year=year, month=month, day=day,
@@ -2239,10 +2253,16 @@ class Pendulum(datetime.datetime, TranslatableMixin):
         return(self, )
 
     def _getstate(self):
+        tz = self.timezone_name
+
+        # Fix for fixed timezones not being properly unpickled
+        if isinstance(self.tz, FixedTimezone):
+            tz = self.offset_hours
+
         return (
             self.year, self.month, self.day,
             self.hour, self.minute, self.second, self.microsecond,
-            self.timezone_name
+            tz
         )
 
     def __reduce__(self):
