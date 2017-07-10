@@ -1,9 +1,18 @@
 Pendulum
 ########
 
+.. image:: https://img.shields.io/pypi/v/pendulum.svg
+    :target: https://pypi.python.org/pypi/pendulum
+
+.. image:: https://img.shields.io/pypi/l/pendulum.svg
+    :target: https://pypi.python.org/pypi/pendulum
+
+.. image:: https://img.shields.io/codecov/c/github/sdispater/pendulum/master.svg
+    :target: https://codecov.io/gh/sdispater/pendulum/branch/master
+
 .. image:: https://travis-ci.org/sdispater/pendulum.png
-   :alt: Pendulum Build status
-   :target: https://travis-ci.org/sdispater/pendulum
+    :alt: Pendulum Build status
+    :target: https://travis-ci.org/sdispater/pendulum
 
 Python datetimes made easy.
 
@@ -84,20 +93,17 @@ and it will try its best to return something while silently failing to handle so
     pendulum.parse('2016-1-17')
     # <Pendulum [2016-01-17T00:00:00+00:00]>
 
-    # Parsing of a date with wrong day
-    arrow.get('2015-06-31')
-    # <Arrow [2015-06-01T00:00:00+00:00]>
+    arrow.get('20160413')
+    # <Arrow [1970-08-22T08:06:53+00:00]>
 
-    pendulum.parse('2016-06-31')
-    # ValueError: day is out of range for month
+    pendulum.parse('20160413')
+    # <Pendulum [2016-04-13T00:00:00+00:00]>
 
-    # fromtimestamp with timezone displays wrong offset
-    arrow.Arrow.fromtimestamp(0, pytz.timezone('Europe/Paris'))
-    # <Arrow [1970-01-01T01:00:00+00:09]>
+    arrow.get('2016-W07-5')
+    # <Arrow [2016-01-01T00:00:00+00:00]>
 
-    pendulum.from_timestamp(0, pytz.timezone('Europe/Paris'))
-    # fromtimestamp() is also possible
-    # <Pendulum [1970-01-01T01:00:00+01:00]>
+    pendulum.parse('2016-W07-5')
+    # <Pendulum [2016-02-19T00:00:00+00:00]>
 
     # Working with DST
     just_before = arrow.Arrow(2013, 3, 31, 1, 59, 59, 999999, 'Europe/Paris')
@@ -118,6 +124,53 @@ and it will try its best to return something while silently failing to handle so
 
 Those are a few examples showing that Arrow cannot always be trusted to have a consistent
 behavior with the data you are passing to it.
+
+
+Limitations
+===========
+
+Even though the ``Pendulum`` class is a subclass of ``datetime`` there are some rare cases where
+it can't replace the native class directly. Here is a list (non-exhaustive) of the reported cases with
+a possible solution, if any:
+
+* ``sqlite3`` will use the the ``type()`` function to determine the type of the object by default. To work around it you can register a new adapter:
+
+.. code-block:: python
+
+    from pendulum import Pendulum
+    from sqlite3 import register_adapter
+
+    register_adapter(Pendulum, lambda val: val.isoformat(' '))
+
+* ``mysqlclient`` (former ``MySQLdb``) and ``PyMySQL`` will use the the ``type()`` function to determine the type of the object by default. To work around it you can register a new adapter:
+
+.. code-block:: python
+
+    import MySQLdb.converters
+    import pymysql.converters
+
+    from pendulum import Pendulum
+
+    MySQLdb.converters.conversions[Pendulum] = MySQLdb.converters.DateTime2literal
+    pymysql.converters.conversions[Pendulum] = pymysql.converters.escape_datetime
+
+* ``django`` will use the ``isoformat()`` method to store datetimes in the database. However since ``pendulum`` is always timezone aware the offset information will always be returned by ``isoformat()`` raising an error, at least for MySQL databases. To work around it you can either create your own ``DateTimeField`` or use the previous workaround for ``MySQLdb``:
+
+.. code-block:: python
+
+    from django.db.models import DateTimeField as BaseDateTimeField
+    from pendulum import Pendulum
+
+
+    class DateTimeField(BaseDateTimeField):
+
+        def value_to_string(self, obj):
+            val = self.value_from_object(obj)
+
+            if isinstance(value, Pendulum):
+                return value.to_datetime_string()
+
+            return '' if val is None else val.isoformat()
 
 
 Resources

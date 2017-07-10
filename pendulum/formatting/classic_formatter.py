@@ -16,7 +16,7 @@ class ClassicFormatter(Formatter):
         Formats a Pendulum instance with a given format and locale.
 
         :param dt: The instance to format
-        :type dt: Pendulum
+        :type dt: pendulum.Pendulum or pendulum.Date
 
         :param fmt: The format to use
         :type fmt: str
@@ -35,14 +35,20 @@ class ClassicFormatter(Formatter):
         # Checking for localizable directives
         fmt = re.sub('%(a|A|b|B|p)', lambda m: self._localize_directive(dt, m.group(1), locale), fmt)
 
-        return dt._datetime.strftime(fmt)
+        if hasattr(dt, '_datetime'):
+            return dt._datetime.strftime(fmt)
+
+        if hasattr(dt, '_time'):
+            return dt._time.strftime(fmt)
+
+        return datetime.date(dt.year, dt.month, dt.day).strftime(fmt)
 
     def _localize_directive(self, dt, directive, locale):
         """
         Localize a native strftime directive.
 
         :param dt: The instance to format
-        :type dt: Pendulum
+        :type dt: pendulum.Pendulum
 
         :param directive: The directive to localize
         :type directive: str
@@ -81,7 +87,7 @@ class ClassicFormatter(Formatter):
         Handles custom formatters in format string.
 
         :param dt: The instance to format
-        :type dt: Pendulum
+        :type dt: pendulum.Pendulum
 
         :return: str
         """

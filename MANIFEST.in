@@ -1,4 +1,2 @@
 include README.rst LICENSE
-include pendulum/_extensions/tz/*.pyx
-recursive-exclude tests *
-recursive-exclude benchmark *
+exclude test*

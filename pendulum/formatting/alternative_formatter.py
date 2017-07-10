@@ -83,7 +83,7 @@ class AlternativeFormatter(Formatter):
         'SSSSSS': lambda dt: '{:06d}'.format(dt.microsecond),
 
         # Timestamp
-        'X': lambda dt: '{:d}'.format(dt.timestamp),
+        'X': lambda dt: '{:d}'.format(dt.int_timestamp),
 
         # Timezone
         'z': lambda dt: '{}'.format(dt.tzinfo.abbrev),
@@ -104,7 +104,7 @@ class AlternativeFormatter(Formatter):
         Formats a Pendulum instance with a given format and locale.
 
         :param dt: The instance to format
-        :type dt: Pendulum
+        :type dt: pendulum.Pendulum
 
         :param fmt: The format to use
         :type fmt: str
@@ -131,7 +131,7 @@ class AlternativeFormatter(Formatter):
         Formats a Pendulum instance with a given token and locale.
 
         :param dt: The instance to format
-        :type dt: Pendulum
+        :type dt: pendulum.Pendulum
 
         :param token: The token to use
         :type token: str
@@ -174,7 +174,7 @@ class AlternativeFormatter(Formatter):
         with a given localizable token and locale.
 
         :param dt: The instance to format
-        :type dt: Pendulum
+        :type dt: pendulum.Pendulum
 
         :param token: The token to use
         :type token: str

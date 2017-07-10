@@ -35,17 +35,15 @@ with_extensions = os.getenv('PENDULUM_EXTENSIONS', None)
 if with_extensions == '1' or with_extensions is None:
     with_extensions = True
 
-if hasattr(sys, 'pypy_version_info'):
+if with_extensions == '0' or hasattr(sys, 'pypy_version_info'):
     with_extensions = False
 
 extensions = []
 if with_extensions:
     extensions = [
         Extension('pendulum._extensions._helpers',
-                  ['pendulum/_extensions/_helpers.c'],
-                  extra_compile_args=['-Wno-unused-function']),
+                  ['pendulum/_extensions/_helpers.c']),
     ]
-
 
 class BuildFailed(Exception):
 
@@ -68,6 +66,9 @@ class ve_build_ext(build_ext):
                 DistutilsPlatformError, ValueError):
             raise BuildFailed()
 
+packages = ['pendulum']
+for pkg in find_packages('pendulum'):
+    packages.append('pendulum.' + pkg)
 
 kwargs = dict(
     name='pendulum',
@@ -79,11 +80,11 @@ kwargs = dict(
     author_email='sebastien@eustace.io',
     url='https://github.com/sdispater/pendulum',
     download_url='https://github.com/sdispater/pendulum/archive/%s.tar.gz' % __version__,
-    packages=find_packages(exclude=['tests']),
+    packages=packages,
     install_requires=[
         'tzlocal',
-        'pytz',
         'python-dateutil',
+        'pytzdata',
     ],
     include_package_data=True,
     tests_require=['pytest'],
@@ -92,7 +93,15 @@ kwargs = dict(
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy'
     ],
 )
 

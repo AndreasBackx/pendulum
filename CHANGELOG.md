@@ -1,5 +1,162 @@
 # Change Log
 
+## [1.2.4] - 2017-06-20
+
+### Fixed
+
+- Fixed parsing of the `now` string.
+
+
+## [1.2.3] - 2017-06-18
+
+### Fixed
+
+- Fixed behavior of some short timezones (like EST, MST or HST).
+- Fixed warning when building C extensions.
+
+
+## [1.2.2] - 2017-06-15
+
+### Fixed
+
+- Fixed `next()` and `previous()` hanging when passed an invalid input.
+- Fixed wrong result when adding/subtracting a Period if a DST transition occurs.
+
+
+## [1.2.1] - 2017-05-23
+
+### Fixed
+
+- Fixed incorrect `fold` attribute on Python 3.6 when not passing a timezone. (Thanks to [neonquill](https://github.com/neonquill))
+
+
+## [1.2.0] - 2017-03-24
+
+### Added
+
+- Added support for EXIF-formatted strings in parser. (Thanks to [emattiza](https://github.com/emattiza))
+
+### Changed
+
+- Improved performances when parsing ISO 8601 string with C extensions.
+
+### Fixed
+
+- Fixed parsing of ISO 8601 week dates.
+- Fixed `eu` and `sk` locales. (Thanks to [eumiro](https://github.com/eumiro))
+
+
+## [1.1.1] - 2017-03-14
+
+### Fixed
+
+- Fixed `diff_for_humans()` when crossing DST transitions.
+
+
+## [1.1.0] - 2017-02-20
+
+### Added
+
+- Added the `keep_time` keyword argument to `next()`/`previous()` methods to keep time information.
+
+### Changed
+
+- Greatly improved `diff()` performance.
+- Improved `diff_for_humans()` method to display more intuitive strings on edge cases.
+- Formatting (with f-strings or `format()`) will now use the configured formatter.
+
+
+## [1.0.2] - 2017-02-04
+
+### Changed
+
+- Adds support for external tzinfo as timezones. (Thanks to [iv597](https://github.com/iv597))
+
+### Fixed
+
+- Fixed `day_of_year` not returning the correct value. (Thanks to [asrenzo](https://github.com/asrenzo))
+
+
+## [1.0.1] - 2017-01-25
+
+### Fixed
+
+- Fixed parsing, especially for strings in the form `31-01-01`.
+
+
+## [1.0.0] - 2017-01-17
+
+### Changed
+
+- Using `PRE_TRANSITION` rule no longer produces a time in a DST gap.
+- Improved performances when adding time to a `Pendulum` instance.
+- Improved parsing of ISO 8601 strings.
+- Removed deprecated methods
+
+
+## [0.8.0] - 2016-12-23
+
+### Added
+
+- Added `on()` and `at()` methods which replace `with_date()` and `with_time()`.
+- Added a `strict` keyword argument to `parse()` to get the type matching the parsed string.
+- Added the ability to pass an amount to the `range()` method to control the length of the gap.
+- Added a `datetime()` helper method to the `Timezone` class.
+
+### Changed
+
+- Improved parsing of ISO 8601 strings.
+
+### Deprecated
+
+- `with_date()` and `with_time()` are deprecated. Use `on()` and `at()` instead.
+- `create_from_date()` and `create_from_time()` are deprecated. Use `create()` instead.
+
+
+## [0.7.0] - 2016-12-07
+
+### Added
+
+- Added a `Date` class.
+- Added a `Time` class.
+- Added experimental support for the `fold` attribute introduced in Python 3.6.
+- Added a `remaining_days` property to the `Interval` class.
+- Added a `int_timestamp` property to the `Pendulum` class to retrieve the behavior of the now deprecated `timestamp` property.
+- `start_of()`/`end_of()` now supports `hour`, `minute` and `second` units.
+- `astimezone()` now supports timezone strings.
+- `in_words()` now displays subseconds when no other units are available.
+
+### Changed
+
+- `Period` properties (especially `years` and `months`) are now accurate.
+- `Interval.seconds` now returns the whole number of remaining seconds, like `timedelta`, for compatibility. Use `remaining_seconds` to retrieve the previous behavior.
+- Improved parsing performances for common formats.
+- The library no longer relies on `pytz`. It now depends on [pytzdata](https://github.com/sdispater/pytzdata) for its timezone database.
+- Locale, test instance and formatter are now set gobally at the module level when using the corresponding module methods.
+
+### Deprecated
+
+- `timestamp` should now be used as a method and no longer as a property. It will be a native method in the next major version.
+- `Interval` properties and methods related to years and months are now deprecated.
+- `Interval.days_exclude_weeks` is now deprecated. Use `remaining_days` instead.
+
+### Fixed
+
+- Exception when loading specific timezones has been fixed.
+- `end_of('day')` now properly sets microseconds to `999999`.
+- Accuracy of `Period` instances properties has been improved.
+- Accuracy for microseconds when initializing a Pendulum instance in some timezones has been fixed.
+- Periods are now serializable with `pickle`.
+- Fixed `minute_()`, `second_()` and `microsecond_()` setters changing the hour unit.
+- Fixed Windows support.
+
+
+## [0.6.6] - 2016-11-25
+
+### Fixed
+
+- Fixed a memory leak in C extension. (thanks to [ntoll](https://github.com/ntoll))
+
 
 ## [0.6.5] - 2016-10-31
 
@@ -228,6 +385,21 @@ This version causes major breaking API changes to simplify it and making it more
 Initial release
 
 
+
+[Unreleased]: https://github.com/sdispater/pendulum/compare/1.2.4...master
+[1.2.4]: https://github.com/sdispater/pendulum/releases/tag/1.2.4
+[1.2.3]: https://github.com/sdispater/pendulum/releases/tag/1.2.3
+[1.2.2]: https://github.com/sdispater/pendulum/releases/tag/1.2.2
+[1.2.1]: https://github.com/sdispater/pendulum/releases/tag/1.2.1
+[1.2.0]: https://github.com/sdispater/pendulum/releases/tag/1.2.0
+[1.1.1]: https://github.com/sdispater/pendulum/releases/tag/1.1.1
+[1.1.0]: https://github.com/sdispater/pendulum/releases/tag/1.1.0
+[1.0.2]: https://github.com/sdispater/pendulum/releases/tag/1.0.2
+[1.0.1]: https://github.com/sdispater/pendulum/releases/tag/1.0.1
+[1.0.0]: https://github.com/sdispater/pendulum/releases/tag/1.0.0
+[0.8.0]: https://github.com/sdispater/pendulum/releases/tag/0.8.0
+[0.7.0]: https://github.com/sdispater/pendulum/releases/tag/0.7.0
+[0.6.6]: https://github.com/sdispater/pendulum/releases/tag/0.6.6
 [0.6.5]: https://github.com/sdispater/pendulum/releases/tag/0.6.5
 [0.6.4]: https://github.com/sdispater/pendulum/releases/tag/0.6.4
 [0.6.3]: https://github.com/sdispater/pendulum/releases/tag/0.6.3
